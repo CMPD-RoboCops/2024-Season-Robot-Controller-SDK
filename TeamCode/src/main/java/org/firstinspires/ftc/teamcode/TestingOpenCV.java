@@ -35,6 +35,7 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 
 import org.opencv.core.Mat;
+import org.opencv.core.Core;
 import org.opencv.core.Point;
 import org.opencv.core.Scalar;
 import org.opencv.imgproc.Imgproc;
@@ -81,20 +82,28 @@ public class TestingOpenCV extends LinearOpMode {
     {
         boolean viewportPaused = false;
 
+        Mat hsvImage = new Mat();
+        Mat mask = new Mat();
+
         @Override
         public Mat processFrame(Mat input)
         {
-            Imgproc.rectangle(
-                    input,
-                    new Point(
-                            input.cols()/4,
-                            input.rows()/4),
-                    new Point(
-                            input.cols()*(3f/4f),
-                            input.rows()*(3f/4f)),
-                    new Scalar(0, 255, 0), 4);
+            // Ignore anything that says to use BGR2HSV because OpenCV uses it by default because for some reason, it appears to use RGB.
+            Imgproc.cvtColor(input, hsvImage, Imgproc.COLOR_RGB2HSV);
 
-            return input;
+            // OpenCV uses HSV ranges of 0-180, 0-255, 0-255 intead of the usual 0-360, 0-100, 0-100
+            // TODO: Tune color values
+
+            // RED:
+            Core.inRange(hsvImage, new Scalar(0, 180, 20), new Scalar(12, 255, 255), mask);
+
+            // BLUE:
+            // Core.inRange(hsvImage, new Scalar(100, 180, 20), new Scalar(135, 255, 255), mask);
+
+            // YELLOW:
+            // Core.inRange(hsvImage, new Scalar(12, 180, 20), new Scalar(20, 255, 255), mask);
+
+            return mask;
         }
 
         @Override
