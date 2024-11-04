@@ -32,9 +32,12 @@ package org.firstinspires.ftc.teamcode;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
+import com.acmerobotics.dashboard.config.Config;
+
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 
 import org.opencv.core.Mat;
+import org.opencv.core.Size;
 import org.opencv.core.Core;
 import org.opencv.core.Point;
 import org.opencv.core.Scalar;
@@ -44,6 +47,8 @@ import org.openftc.easyopencv.OpenCvCameraFactory;
 import org.openftc.easyopencv.OpenCvCameraRotation;
 import org.openftc.easyopencv.OpenCvPipeline;
 import org.openftc.easyopencv.OpenCvWebcam;
+
+import org.firstinspires.ftc.teamcode.RobotConstants;
 
 @TeleOp(name="OpenCV Testing", group="Linear OpMode")
 public class TestingOpenCV extends LinearOpMode {
@@ -83,25 +88,29 @@ public class TestingOpenCV extends LinearOpMode {
         boolean viewportPaused = false;
 
         Mat hsvImage = new Mat();
+        Mat blurredImage = new Mat();
         Mat mask = new Mat();
 
         @Override
         public Mat processFrame(Mat input)
         {
+            Imgproc.blur(input, blurredImage, new Size(11, 11));
+
             // Ignore anything that says to use BGR2HSV because OpenCV uses it by default because for some reason, it appears to use RGB.
-            Imgproc.cvtColor(input, hsvImage, Imgproc.COLOR_RGB2HSV);
+            Imgproc.cvtColor(blurredImage, hsvImage, Imgproc.COLOR_RGB2HSV);
 
             // OpenCV uses HSV ranges of 0-180, 0-255, 0-255 intead of the usual 0-360, 0-100, 0-100
             // TODO: Tune color values
+            Core.inRange(hsvImage, new Scalar(RobotConstants.LOW_H, RobotConstants.LOW_S, RobotConstants.LOW_V), new Scalar(RobotConstants.HIGH_H, RobotConstants.HIGH_S, RobotConstants.HIGH_V), mask);
 
             // RED:
-            Core.inRange(hsvImage, new Scalar(0, 180, 20), new Scalar(12, 255, 255), mask);
+            // Core.inRange(hsvImage, new Scalar(0, 180, 20), new Scalar(12, 255, 255), mask);
 
-            // BLUE:
-            // Core.inRange(hsvImage, new Scalar(100, 180, 20), new Scalar(135, 255, 255), mask);
+            // BLUE: (Mostly Tuned)
+            // Core.inRange(hsvImage, new Scalar(100, 150, 60), new Scalar(125, 255, 255), mask);
 
             // YELLOW:
-            // Core.inRange(hsvImage, new Scalar(12, 180, 20), new Scalar(20, 255, 255), mask);
+            // Core.inRange(hsvImage, new Scalar(15, 150, 50), new Scalar(32, 255, 255), mask);
 
             return mask;
         }
