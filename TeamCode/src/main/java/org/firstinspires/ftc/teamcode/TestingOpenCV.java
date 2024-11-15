@@ -37,12 +37,14 @@ import com.acmerobotics.dashboard.config.Config;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 
 import org.opencv.core.Mat;
+import org.opencv.core.MatOfPoint;
 import org.opencv.core.Size;
 import org.opencv.core.Core;
 import org.opencv.core.Rect;
 import org.opencv.core.Point;
 import org.opencv.core.Scalar;
 import org.opencv.imgproc.Imgproc;
+import org.opencv.imgproc.Moments;
 import org.openftc.easyopencv.OpenCvCamera;
 import org.openftc.easyopencv.OpenCvCameraFactory;
 import org.openftc.easyopencv.OpenCvCameraRotation;
@@ -50,6 +52,9 @@ import org.openftc.easyopencv.OpenCvPipeline;
 import org.openftc.easyopencv.OpenCvWebcam;
 
 import org.firstinspires.ftc.teamcode.RobotConstants;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @TeleOp(name="OpenCV Testing", group="Linear OpMode")
 public class TestingOpenCV extends LinearOpMode {
@@ -90,6 +95,7 @@ public class TestingOpenCV extends LinearOpMode {
 
         Mat hsvImage = new Mat();
         Mat blurredImage = new Mat();
+        Mat resizedImage = new Mat();
         Mat mask = new Mat();
         Mat redMask = new Mat();
         Mat redPoints = new Mat();
@@ -98,39 +104,69 @@ public class TestingOpenCV extends LinearOpMode {
         Mat yellowMask = new Mat();
         Mat yellowPoints = new Mat();
 
+        List<MatOfPoint> contours = new ArrayList<>();
+        Mat hierarchy = new Mat();
+        Moments mu = new Moments();
+
+        public int biggestContours(List<MatOfPoint> contours) {
+            /*
+             * Finds the largest contour Id when given a list of contours.
+             */
+            double maxVal = 0;
+            int maxValIdx = 0;
+            for (int contourIdx = 0; contourIdx < contours.size(); contourIdx++)
+            {
+                double contourArea = Imgproc.contourArea(contours.get(contourIdx));
+                if (maxVal < contourArea)
+                {
+                    maxVal = contourArea;
+                    maxValIdx = contourIdx;
+                }
+            }
+            return maxValIdx;
+        }
+
         @Override
         public Mat processFrame(Mat input)
         {
+            // Blur to remove artifacts
             Imgproc.blur(input, blurredImage, new Size(11, 11));
-
-            // Ignore anything that says to use BGR2HSV because OpenCV uses it by default because for some reason, it appears to use RGB.
+            // Resize for performance
+            Imgproc.resize(blurredImage, resizedImage, new Size(50, 50));
+            // Convert to HSV
+            // NOTE: Ignore anything that says to use BGR2HSV
             Imgproc.cvtColor(blurredImage, hsvImage, Imgproc.COLOR_RGB2HSV);
 
-            // OpenCV uses HSV ranges of 0-180, 0-255, 0-255 intead of the usual 0-360, 0-100, 0-100
+            // TODO: Adjust color values.
+            // OpenCV uses HSV ranges of 0-180, 0-255, 0-255 instead of the usual 0-360, 0-100, 0-100
             // Core.inRange(hsvImage, new Scalar(RobotConstants.LOW_H, RobotConstants.LOW_S, RobotConstants.LOW_V), new Scalar(RobotConstants.HIGH_H, RobotConstants.HIGH_S, RobotConstants.HIGH_V), mask);
 
-            // TODO: Optimize so it doesn't crash.
-            // TODO: Adjust values, may not detect in all lighting.
-            // TODO: Prevent it from detecting colors other than specimens from the background.
+            /*
+             * The following finds the center of the largest contour of the mask.
+             * Contour is the name used by OpenCV to describe a region of the image.
+             */
 
-            // RED:
-            Core.inRange(hsvImage, new Scalar(0, 160, 160), new Scalar(12, 255, 255), redMask);
-            Core.findNonZero(redMask, redPoints);
-            Rect redRect = Imgproc.boundingRect(redPoints);
-            Imgproc.rectangle(input, redRect, new Scalar (255, 0, 0));
-/*
-            // BLUE:
-            Core.inRange(hsvImage, new Scalar(100, 130, 130), new Scalar(125, 255, 255), blueMask);
-            Core.findNonZero(blueMask, bluePoints);
-            Rect blueRect = Imgproc.boundingRect(bluePoints);
-            Imgproc.rectangle(input, blueRect, new Scalar (0, 0, 255));
+            // RED
+            Core.inRange(hsvImage, new Scalar(0, 100, 50), new Scalar(18, 255, 255), redMask);
+            contours.clear();
+            Imgproc.findContours(redMask, contours, hierarchy, Imgproc.RETR_TREE, Imgproc.CHAIN_APPROX_SIMPLE);
+            int redIdx = biggestContours(contours);
+            if ( redIdx > 0 && Imgproc.contourArea(contours.get(redIdx)) > 50 ) {
+                mu = Imgproc.moments(contours.get(redIdx));
+                // 1e-5 is used to avoid division by 0 according to OpenCV docs
+                Imgproc.circle(input, new Point(mu.m10 / mu.m00 + 1e-5, mu.m01 / mu.m00 + 1e-5), 4, new Scalar(0, 255, 0), -1);
+            }
 
-            // YELLOW:
-            Core.inRange(hsvImage, new Scalar(15, 160, 160), new Scalar(32, 255, 255), yellowMask);
-            Core.findNonZero(yellowMask, yellowPoints);
-            Rect yellowRect = Imgproc.boundingRect(yellowPoints);
-            Imgproc.rectangle(input, yellowRect, new Scalar (0, 255, 255));
-*/
+            // YELLOW
+            Core.inRange(hsvImage, new Scalar(15, 100, 50), new Scalar(32, 255, 255), yellowMask);
+            contours.clear();
+            Imgproc.findContours(yellowMask, contours, hierarchy, Imgproc.RETR_TREE, Imgproc.CHAIN_APPROX_SIMPLE);
+            int yellowIdx = biggestContours(contours);
+            if ( yellowIdx > 0 && Imgproc.contourArea(contours.get(yellowIdx)) > 50 ) {
+                mu = Imgproc.moments(contours.get(yellowIdx));
+                Imgproc.circle(input, new Point(mu.m10 / mu.m00 + 1e-5, mu.m01 / mu.m00 + 1e-5), 4, new Scalar(0, 255, 0), -1);
+            }
+
             return input;
         }
 
