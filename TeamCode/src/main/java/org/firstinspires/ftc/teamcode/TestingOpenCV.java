@@ -38,6 +38,8 @@ import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 
 import org.opencv.core.Mat;
 import org.opencv.core.MatOfPoint;
+import org.opencv.core.MatOfPoint2f;
+import org.opencv.core.RotatedRect;
 import org.opencv.core.Size;
 import org.opencv.core.Core;
 import org.opencv.core.Rect;
@@ -109,6 +111,9 @@ public class TestingOpenCV extends LinearOpMode {
         List<MatOfPoint> contours = new ArrayList<>();
         Mat hierarchy = new Mat();
         Moments mu = new Moments();
+        MatOfPoint2f rectPoints = new MatOfPoint2f();
+        RotatedRect rect = new RotatedRect();
+        Mat box = new Mat();
 
         public int biggestContours(List<MatOfPoint> contours) {
             /*
@@ -160,6 +165,14 @@ public class TestingOpenCV extends LinearOpMode {
             Imgproc.findContours(redMask, contours, hierarchy, Imgproc.RETR_TREE, Imgproc.CHAIN_APPROX_SIMPLE);
             int redIdx = biggestContours(contours);
             if ( !contours.isEmpty() && Imgproc.contourArea(contours.get(redIdx)) > 50 ) {
+                rectPoints = new MatOfPoint2f( contours.get(redIdx).toArray() );
+                rect = Imgproc.minAreaRect(rectPoints);
+                Imgproc.boxPoints(rect, box);
+                Point[] points = new Point[4];
+                rect.points(points);
+                for(int i=0; i<4; ++i){
+                    Imgproc.line(input, new Point(points[i].x * 4, points[i].y *4), new Point(points[(i+1)%4].x * 4, points[(i+1)%4].y * 4), new Scalar(0, 255, 255));
+                }
                 mu = Imgproc.moments(contours.get(redIdx));
                 Imgproc.circle(input, new Point(mu.m10 * 4 / mu.m00 + 1e-5, mu.m01 * 4 / mu.m00 + 1e-5), 4, new Scalar(0, 255, 255), -1);
             }
@@ -170,6 +183,14 @@ public class TestingOpenCV extends LinearOpMode {
             Imgproc.findContours(yellowMask, contours, hierarchy, Imgproc.RETR_TREE, Imgproc.CHAIN_APPROX_SIMPLE);
             int yellowIdx = biggestContours(contours);
             if (!contours.isEmpty() && Imgproc.contourArea(contours.get(yellowIdx)) > 50 ) {
+                rectPoints = new MatOfPoint2f( contours.get(yellowIdx).toArray() );
+                rect = Imgproc.minAreaRect(rectPoints);
+                Imgproc.boxPoints(rect, box);
+                Point[] points = new Point[4];
+                rect.points(points);
+                for(int i=0; i<4; ++i){
+                    Imgproc.line(input, new Point(points[i].x * 4, points[i].y *4), new Point(points[(i+1)%4].x * 4, points[(i+1)%4].y * 4), new Scalar(0, 0, 255));
+                }
                 mu = Imgproc.moments(contours.get(yellowIdx));
                 Imgproc.circle(input, new Point(mu.m10 * 4 / mu.m00 + 1e-5, mu.m01 * 4 / mu.m00 + 1e-5), 4, new Scalar(0, 0, 255), -1);
             }
@@ -180,6 +201,14 @@ public class TestingOpenCV extends LinearOpMode {
             Imgproc.findContours(blueMask, contours, hierarchy, Imgproc.RETR_TREE, Imgproc.CHAIN_APPROX_SIMPLE);
             int blueIdx = biggestContours(contours);
             if (!contours.isEmpty() && Imgproc.contourArea(contours.get(blueIdx)) > 50 ) {
+                rectPoints = new MatOfPoint2f( contours.get(blueIdx).toArray() );
+                rect = Imgproc.minAreaRect(rectPoints);
+                Imgproc.boxPoints(rect, box);
+                Point[] points = new Point[4];
+                rect.points(points);
+                for(int i=0; i<4; ++i){
+                    Imgproc.line(input, new Point(points[i].x * 4, points[i].y *4), new Point(points[(i+1)%4].x * 4, points[(i+1)%4].y * 4), new Scalar(255, 255, 0));
+                }
                 mu = Imgproc.moments(contours.get(blueIdx));
                 Imgproc.circle(input, new Point(mu.m10 * 4 / mu.m00 + 1e-5, mu.m01 * 4 / mu.m00 + 1e-5), 4, new Scalar(255, 255, 0), -1);
             }
