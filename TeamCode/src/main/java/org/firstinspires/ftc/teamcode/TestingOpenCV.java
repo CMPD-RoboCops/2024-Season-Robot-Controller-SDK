@@ -98,6 +98,8 @@ public class TestingOpenCV extends LinearOpMode {
         Mat resizedImage = new Mat();
         Mat mask = new Mat();
         Mat redMask = new Mat();
+        Mat redMaskA = new Mat();
+        Mat redMaskB = new Mat();
         Mat redPoints = new Mat();
         Mat blueMask = new Mat();
         Mat bluePoints = new Mat();
@@ -132,39 +134,54 @@ public class TestingOpenCV extends LinearOpMode {
             // Blur to remove artifacts
             Imgproc.blur(input, blurredImage, new Size(11, 11));
             // Resize for performance
-            Imgproc.resize(blurredImage, resizedImage, new Size(50, 50));
+            Imgproc.resize(blurredImage, resizedImage, new Size(80, 60));
             // Convert to HSV
             // NOTE: Ignore anything that says to use BGR2HSV
-            Imgproc.cvtColor(blurredImage, hsvImage, Imgproc.COLOR_RGB2HSV);
-
-            // TODO: Adjust color values.
-            // OpenCV uses HSV ranges of 0-180, 0-255, 0-255 instead of the usual 0-360, 0-100, 0-100
-            // Core.inRange(hsvImage, new Scalar(RobotConstants.LOW_H, RobotConstants.LOW_S, RobotConstants.LOW_V), new Scalar(RobotConstants.HIGH_H, RobotConstants.HIGH_S, RobotConstants.HIGH_V), mask);
+            Imgproc.cvtColor(resizedImage, hsvImage, Imgproc.COLOR_RGB2HSV);
 
             /*
              * The following finds the center of the largest contour of the mask.
              * Contour is the name used by OpenCV to describe a region of the image.
+             *
+             * OpenCV uses HSV ranges of 0-180, 0-255, 0-255 instead of the usual 0-360, 0-100, 0-100
+             *
+             * 1e-5 is used to avoid division by 0 according to OpenCV docs
+             * Multiplied by for to account for scaled down image
+             *
+             * Test ranges with FTC Dashboard:
+             * Core.inRange(hsvImage, new Scalar(RobotConstants.LOW_H, RobotConstants.LOW_S, RobotConstants.LOW_V), new Scalar(RobotConstants.HIGH_H, RobotConstants.HIGH_S, RobotConstants.HIGH_V), mask);
              */
 
             // RED
-            Core.inRange(hsvImage, new Scalar(0, 100, 50), new Scalar(18, 255, 255), redMask);
+            Core.inRange(hsvImage, new Scalar(0, 100, 45), new Scalar(10, 255, 255), redMaskA);
+            Core.inRange(hsvImage, new Scalar(170, 160, 50), new Scalar(180, 255, 255), redMaskB);
+            Core.bitwise_or(redMaskA, redMaskB, redMask);
             contours.clear();
             Imgproc.findContours(redMask, contours, hierarchy, Imgproc.RETR_TREE, Imgproc.CHAIN_APPROX_SIMPLE);
             int redIdx = biggestContours(contours);
-            if ( redIdx > 0 && Imgproc.contourArea(contours.get(redIdx)) > 50 ) {
+            if ( !contours.isEmpty() && Imgproc.contourArea(contours.get(redIdx)) > 50 ) {
                 mu = Imgproc.moments(contours.get(redIdx));
-                // 1e-5 is used to avoid division by 0 according to OpenCV docs
-                Imgproc.circle(input, new Point(mu.m10 / mu.m00 + 1e-5, mu.m01 / mu.m00 + 1e-5), 4, new Scalar(0, 255, 0), -1);
+                Imgproc.circle(input, new Point(mu.m10 * 4 / mu.m00 + 1e-5, mu.m01 * 4 / mu.m00 + 1e-5), 4, new Scalar(0, 255, 255), -1);
             }
 
             // YELLOW
-            Core.inRange(hsvImage, new Scalar(15, 100, 50), new Scalar(32, 255, 255), yellowMask);
+            Core.inRange(hsvImage, new Scalar(15, 150, 60), new Scalar(35, 255, 255), yellowMask);
             contours.clear();
             Imgproc.findContours(yellowMask, contours, hierarchy, Imgproc.RETR_TREE, Imgproc.CHAIN_APPROX_SIMPLE);
             int yellowIdx = biggestContours(contours);
-            if ( yellowIdx > 0 && Imgproc.contourArea(contours.get(yellowIdx)) > 50 ) {
+            if (!contours.isEmpty() && Imgproc.contourArea(contours.get(yellowIdx)) > 50 ) {
                 mu = Imgproc.moments(contours.get(yellowIdx));
-                Imgproc.circle(input, new Point(mu.m10 / mu.m00 + 1e-5, mu.m01 / mu.m00 + 1e-5), 4, new Scalar(0, 255, 0), -1);
+                Imgproc.circle(input, new Point(mu.m10 * 4 / mu.m00 + 1e-5, mu.m01 * 4 / mu.m00 + 1e-5), 4, new Scalar(0, 0, 255), -1);
+            }
+
+            // BLUE
+            Core.inRange(hsvImage, new Scalar(95, 80, 0), new Scalar(120, 255, 255), blueMask);
+            contours.clear();
+            Imgproc.findContours(blueMask, contours, hierarchy, Imgproc.RETR_TREE, Imgproc.CHAIN_APPROX_SIMPLE);
+            int blueIdx = biggestContours(contours);
+            if (!contours.isEmpty() && Imgproc.contourArea(contours.get(blueIdx)) > 50 ) {
+                mu = Imgproc.moments(contours.get(blueIdx));
+                Imgproc.circle(input, new Point(mu.m10 * 4 / mu.m00 + 1e-5, mu.m01 * 4 / mu.m00 + 1e-5), 4, new Scalar(255, 255, 0), -1);
             }
 
             return input;
