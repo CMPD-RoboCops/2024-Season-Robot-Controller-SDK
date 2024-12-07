@@ -27,20 +27,18 @@ public class OpenCVProcessor implements VisionProcessor {
 
     }
 
-    Mat hsvImage = new Mat();
-    Mat blurredImage = new Mat();
-    Mat resizedImage = new Mat();
-    Mat[] masks = new Mat[] { new Mat(), new Mat(), new Mat() };
-
-    List<MatOfPoint> contours = new ArrayList<>();
-    Mat hierarchy = new Mat();
-    Moments mu = new Moments();
-    RotatedRect rect = new RotatedRect();
-    MatOfPoint2f rectPoints = new MatOfPoint2f();
-    Mat box = new Mat();
 
     @Override
     public Object processFrame(Mat input, long captureTimeNanos) {
+
+        Mat hsvImage = new Mat();
+        Mat blurredImage = new Mat();
+        Mat resizedImage = new Mat();
+        ArrayList<Mat> masks = new ArrayList<Mat>();
+        Mat tempMatA = new Mat();
+        Mat tempMatB = new Mat();
+        Mat tempMatC = new Mat();
+
         // Blur to remove artifacts
         Imgproc.blur(input, blurredImage, new Size(11, 11));
 
@@ -65,24 +63,32 @@ public class OpenCVProcessor implements VisionProcessor {
          */
 
         // RED
-        Core.inRange(hsvImage, new Scalar(0, 100, 45), new Scalar(10, 255, 255), masks[1]);
-        Core.inRange(hsvImage, new Scalar(170, 160, 50), new Scalar(180, 255, 255), masks[2]);
-        Core.bitwise_or(masks[1], masks[2], masks[0]);
+        Core.inRange(hsvImage, new Scalar(0, 100, 45), new Scalar(10, 255, 255), tempMatA);
+        Core.inRange(hsvImage, new Scalar(170, 160, 50), new Scalar(180, 255, 255), tempMatB);
+        Core.bitwise_or(tempMatA, tempMatB, tempMatC);
+        masks.add(tempMatC);
         // YELLOW
-        Core.inRange(hsvImage, new Scalar(15, 150, 60), new Scalar(35, 255, 255), masks[1]);
+        Core.inRange(hsvImage, new Scalar(15, 150, 60), new Scalar(35, 255, 255), tempMatA);
+        masks.add(tempMatA);
         // BLUE
-        Core.inRange(hsvImage, new Scalar(95, 80, 0), new Scalar(120, 255, 255), masks[2]);
-        return null;
+        Core.inRange(hsvImage, new Scalar(95, 80, 0), new Scalar(120, 255, 255), tempMatB);
+        masks.add(tempMatB);
+        return masks;
     }
 
     public Point[] findRectPoints(List<MatOfPoint> contours, int contoursIdx) {
-        rectPoints = new MatOfPoint2f( contours.get(contoursIdx).toArray() );
+
+        RotatedRect rect = new RotatedRect();
+        Mat box = new Mat();
+        MatOfPoint2f rectPoints = new MatOfPoint2f( contours.get(contoursIdx).toArray() );
+
         rect = Imgproc.minAreaRect(rectPoints);
         Imgproc.boxPoints(rect, box);
         Point[] points = new Point[4];
         rect.points(points);
         return points;
     }
+
     public int biggestContours(List<MatOfPoint> contours) {
         /*
          * Finds the largest contour Id when given a list of contours.
@@ -101,24 +107,40 @@ public class OpenCVProcessor implements VisionProcessor {
 
     @Override
     public void onDrawFrame(Canvas canvas, int onscreenWidth, int onscreenHeight, float scaleBmpPxToCanvasPx, float scaleCanvasDensity, Object userContext) {
+
+        List<MatOfPoint> contours = new ArrayList<>();
+        Mat hierarchy = new Mat();
+        Moments mu = new Moments();
+
         // Set paint color
-        Paint paint = new Paint();
-        paint.setColor(Color.RED);
-        paint.setStyle(Paint.Style.STROKE);
-        paint.setStrokeWidth(scaleCanvasDensity * 4);
+        ArrayList<Paint> paint = new ArrayList<Paint>();
+        paint.add(new Paint());
+        paint.get(0).setColor(Color.RED);
+        paint.get(0).setStyle(Paint.Style.STROKE);
+        paint.get(0).setStrokeWidth(scaleCanvasDensity * 4);
+        paint.add(new Paint());
+        paint.get(1).setColor(Color.YELLOW);
+        paint.get(1).setStyle(Paint.Style.STROKE);
+        paint.get(1).setStrokeWidth(scaleCanvasDensity * 4);
+        paint.add(new Paint());
+        paint.get(2).setColor(Color.BLUE);
+        paint.get(2).setStyle(Paint.Style.STROKE);
+        paint.get(2).setStrokeWidth(scaleCanvasDensity * 4);
+
+        ArrayList<Mat> imgMasks = (ArrayList<Mat>) userContext;
 
         // Draw stuff
         for(int i = 0; i < 3; i++) {
             contours.clear();
-            Imgproc.findContours(masks[i], contours, hierarchy, Imgproc.RETR_TREE, Imgproc.CHAIN_APPROX_SIMPLE);
+            Imgproc.findContours(imgMasks.get(i), contours, hierarchy, Imgproc.RETR_TREE, Imgproc.CHAIN_APPROX_SIMPLE);
             int Idx = biggestContours(contours);
-            if (!contours.isEmpty() && Imgproc.contourArea(contours.get(Idx)) > 50 && contours.size() <= Idx) {
+            if (!contours.isEmpty() && Imgproc.contourArea(contours.get(Idx)) > 50) {
                 Point[] points = findRectPoints(contours, Idx);
-                for (int j = 0; j < 4; ++j) {
-                    canvas.drawLine((float)points[j].x * 4, (float)points[j].y * 4, (float)points[(j + 1) % 4].x * 4, (float)points[(j + 1) % 4].y * 4, paint);
+                for (int j = 0; j < points.length; j++) {
+                    canvas.drawLine((float)points[j].x * 12, (float)points[j].y * 12, (float)points[(j + 1) % 4].x * 12, (float)points[(j + 1) % 4].y * 12, paint.get(i));
                 }
                 mu = Imgproc.moments(contours.get(Idx));
-                canvas.drawCircle((float)(mu.m10 * 4 / mu.m00 + 1e-5), (float)(mu.m01 * 4 / mu.m00 + 1e-5), 1, paint);
+                canvas.drawCircle((float)(mu.m10 * 12 / mu.m00 + 1e-5), (float)(mu.m01 * 12 / mu.m00 + 1e-5), 1, paint.get(i));
             }
         }
     }
