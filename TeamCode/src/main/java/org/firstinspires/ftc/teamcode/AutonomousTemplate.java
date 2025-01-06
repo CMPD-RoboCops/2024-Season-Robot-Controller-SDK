@@ -29,10 +29,9 @@ public class AutonomousTemplate extends OpMode {
         scoringElementProcessor = new ScoringElementProcessor();
 
         // Create AprilTag processor
-        // TODO Add position of camera
         aprilTagProcessor = new AprilTagProcessor.Builder()
                 .setCameraPose(
-                        new Position(DistanceUnit.INCH, 0, 0, 0, 0),
+                        new Position(DistanceUnit.INCH, 0, 6.5, 3, 0),
                         new YawPitchRollAngles(AngleUnit.DEGREES, 0, -90, 0, 0)
                 )
                 .build();
