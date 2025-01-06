@@ -29,7 +29,6 @@
 
 package org.firstinspires.ftc.robotcontroller.external.samples;
 
-import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -63,27 +62,35 @@ import com.qualcomm.robotcore.util.ElapsedTime;
  * Remove or comment out the @Disabled line to add this OpMode to the Driver Station OpMode list
  */
 
-@TeleOp(name="Basic: Omni Linear OpMode", group="Linear OpMode")
-//@Disabled
-public class BasicOmniOpMode_Linear extends LinearOpMode {
+@TeleOp(name="MotorTest", group="Linear OpMode")
+
+public class MotorTest extends LinearOpMode {
 
     // Declare OpMode members for each of the 4 motors.
     private ElapsedTime runtime = new ElapsedTime();
-    private DcMotor frontleft = null;
-    private DcMotor backleft = null;
-    private DcMotor rightfront = null;
-    private DcMotor rightback = null;
+    private DcMotor FrontLeft = null;
+    private DcMotor BackLeft = null;
+    private DcMotor FrontRight = null;
+    private DcMotor BackRight = null;
+    private DcMotor Elevator = null;
+    private DcMotor ArmRotate = null;
+    private DcMotor ElevatorRotate = null;
 
     @Override
     public void runOpMode() {
 
         // Initialize the hardware variables. Note that the strings used here must correspond
         // to the names assigned during the robot configuration step on the DS or RC devices.
-        frontleft  = hardwareMap.get(DcMotor.class, "front left");
-        backleft  = hardwareMap.get(DcMotor.class, "back left");
-        rightfront = hardwareMap.get(DcMotor.class, "right front");
-        rightback = hardwareMap.get(DcMotor.class, "right back");
+        FrontLeft  = hardwareMap.get(DcMotor.class, "FrontLeft");
+        BackLeft  = hardwareMap.get(DcMotor.class, "BackLeft");
+        FrontRight = hardwareMap.get(DcMotor.class, "FrontRight");
+        BackRight = hardwareMap.get(DcMotor.class, "BackRight");
+        Elevator = hardwareMap.get(DcMotor.class, "Elevator");
+        ArmRotate = hardwareMap.get(DcMotor.class, "ArmRotate");
+        ElevatorRotate = hardwareMap.get(DcMotor.class, "ElevatorRotate");
 
+        int TARGET_TICK_VALUE = 0;
+                
         // ########################################################################################
         // !!!            IMPORTANT Drive Information. Test your motor directions.            !!!!!
         // ########################################################################################
@@ -94,11 +101,19 @@ public class BasicOmniOpMode_Linear extends LinearOpMode {
         // when you first test your robot, push the left joystick forward and observe the direction the wheels turn.
         // Reverse the direction (flip FORWARD <-> REVERSE ) of any wheel that runs backward
         // Keep testing until ALL the wheels move the robot forward when you push the left joystick forward.
-        frontleft.setDirection(DcMotor.Direction.REVERSE);
-        backleft.setDirection(DcMotor.Direction.REVERSE);
-        rightfront.setDirection(DcMotor.Direction.FORWARD);
-        rightback.setDirection(DcMotor.Direction.FORWARD);
+        FrontLeft.setDirection(DcMotor.Direction.REVERSE);
+        BackLeft.setDirection(DcMotor.Direction.REVERSE);
+        FrontRight.setDirection(DcMotor.Direction.FORWARD);
+        BackRight.setDirection(DcMotor.Direction.FORWARD);
+        Elevator.setDirection(DcMotor.Direction.FORWARD);
+        ArmRotate.setDirection(DcMotor.Direction.FORWARD);
+        ElevatorRotate.setDirection(DcMotor.Direction.FORWARD);
 
+        //Set the elevator up to run to position using encoders
+        Elevator.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        Elevator.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        Elevator.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        
         // Wait for the game to start (driver presses START)
         telemetry.addData("Status", "Initialized");
         telemetry.update();
@@ -117,22 +132,35 @@ public class BasicOmniOpMode_Linear extends LinearOpMode {
 
             // Combine the joystick requests for each axis-motion to determine each wheel's power.
             // Set up a variable for each drive wheel to save the power level for telemetry.
-            double leftFrontPower  = axial + lateral + yaw;
-            double rightFrontPower = axial - lateral - yaw;
-            double leftBackPower   = axial - lateral + yaw;
-            double rightBackPower  = axial + lateral - yaw;
+            double FrontLeftPower  = gamepad1.left_stick_y;
+            double FrontRightPower = gamepad1.left_stick_x;
+            double BackLeftPower   = gamepad1.right_stick_x;
+            double BackRightPower  = gamepad1.right_stick_y;
+            boolean ElevatorRotateUpPower = (gamepad1.dpad_up);
+            boolean ElevatorRotateDownPower = (gamepad1.dpad_down);
+            boolean ArmRotateClockwisePower = gamepad1.dpad_right;
+            boolean ArmRotateCounterClockwisePower = (gamepad1.dpad_left);
+            boolean ElevatorUp = (gamepad1.right_trigger != 0);
+            boolean ElevatorDown = (gamepad1.left_trigger != 0);
+
+            /*
+            boolean ArmRotateClockwisePower = gamepad1.dpad_right;
+            boolean ArmRotateCounterClockwisePower = gamepad1.dpad_left;
+            boolean ElevatorRotateClockwisePower = gamepad1.dpad_up;
+            boolean ElevatorRotateCounterClockwisePower = gamepad1.dpad_down;
+            */
 
             // Normalize the values so no wheel power exceeds 100%
             // This ensures that the robot maintains the desired motion.
-            max = Math.max(Math.abs(leftFrontPower), Math.abs(rightFrontPower));
-            max = Math.max(max, Math.abs(leftBackPower));
-            max = Math.max(max, Math.abs(rightBackPower));
+            max = Math.max(Math.abs(FrontLeftPower), Math.abs(FrontRightPower));
+            max = Math.max(max, Math.abs(BackLeftPower));
+            max = Math.max(max, Math.abs(BackRightPower));
 
             if (max > 1.0) {
-                leftFrontPower  /= max;
-                rightFrontPower /= max;
-                leftBackPower   /= max;
-                rightBackPower  /= max;
+                FrontLeftPower  /= max;
+                FrontRightPower /= max;
+                BackLeftPower   /= max;
+                BackRightPower  /= max;
             }
 
             // This is test code:
@@ -146,22 +174,42 @@ public class BasicOmniOpMode_Linear extends LinearOpMode {
             // Once the correct motors move in the correct direction re-comment this code.
 
             /*
-            leftFrontPower  = gamepad1.x ? 1.0 : 0.0;  // X gamepad
-            leftBackPower   = gamepad1.a ? 1.0 : 0.0;  // A gamepad
-            rightFrontPower = gamepad1.y ? 1.0 : 0.0;  // Y gamepad
-            rightBackPower  = gamepad1.b ? 1.0 : 0.0;  // B gamepad
+            FrontLeftPower  = gamepad1.x ? 1.0 : 0.0;  // X gamepad
+            BackLeftPower   = gamepad1.a ? 1.0 : 0.0;  // A gamepad
+            FrontRightPower = gamepad1.y ? 1.0 : 0.0;  // Y gamepad
+            BackRightPower  = gamepad1.b ? 1.0 : 0.0;  // B gamepad
             */
 
             // Send calculated power to wheels
-            frontleft.setPower(leftFrontPower);
-            rightfront.setPower(rightFrontPower);
-            backleft.setPower(leftBackPower);
-            rightback.setPower(rightBackPower);
+            FrontLeft.setPower(FrontLeftPower);
+            FrontRight.setPower(FrontRightPower);
+            BackLeft.setPower(BackLeftPower);
+            BackRight.setPower(BackRightPower);
+
+            if (ElevatorRotateUpPower) ElevatorRotate.setPower(1);
+            else if (ElevatorRotateDownPower) ElevatorRotate.setPower(-1);
+            else ElevatorRotate.setPower(0);
+
+            if (ArmRotateClockwisePower) ArmRotate.setPower(1);
+            else if (ArmRotateCounterClockwisePower) ArmRotate.setPower(-1);
+            else ArmRotate.setPower(0);
+
+            if (ElevatorUp && (TARGET_TICK_VALUE > 0)) TARGET_TICK_VALUE++;
+            else if (ElevatorDown && (TARGET_TICK_VALUE > -10)) TARGET_TICK_VALUE--;
+
+            Elevator.setTargetPosition(TARGET_TICK_VALUE);    //Sets Target Tick Position
+            Elevator.setPower(1);           //Sets Motor to go to position at 1 power.
+            telemetry.addData("Tick", TARGET_TICK_VALUE);
+            /*
+            Elevator.setPower(gamepad1.right_trigger ? 1.0 : 0.0);
+            ArmRotate.setPower(gamepad1.b ? 1.0 : 0.0);
+            ElevatorRotate.setPower(gamepad1.y ? 1.0 : 0.0);
+             */
 
             // Show the elapsed game time and wheel power.
             telemetry.addData("Status", "Run Time: " + runtime.toString());
-            telemetry.addData("Front left/Right", "%4.2f, %4.2f", leftFrontPower, rightFrontPower);
-            telemetry.addData("Back  left/Right", "%4.2f, %4.2f", leftBackPower, rightBackPower);
+            telemetry.addData("FrontLeft/Right", "%4.2f, %4.2f", FrontLeftPower, FrontRightPower);
+            telemetry.addData("Back  left/Right", "%4.2f, %4.2f", BackLeftPower, BackRightPower);
             telemetry.update();
         }
     }}
