@@ -12,7 +12,7 @@ public class ServoClaeTesting extends LinearOpMode {
     @Override
     public void runOpMode() {
         // Initialize the servo
-        myServo = hardwareMap.get(Servo.class, "myServo");
+        myServo = hardwareMap.get(Servo.class, "claw");
 
         while (opModeIsActive()) {
             // Check if the A button is pressed
