@@ -14,6 +14,8 @@ public class ServoClaeTesting extends LinearOpMode {
         // Initialize the servo
         myServo = hardwareMap.get(Servo.class, "claw");
 
+        waitForStart();
+
         while (opModeIsActive()) {
             // Check if the A button is pressed
             if (gamepad1.a) {
