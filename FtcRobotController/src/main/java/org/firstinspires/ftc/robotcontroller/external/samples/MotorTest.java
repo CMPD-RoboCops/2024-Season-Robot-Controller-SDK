@@ -187,13 +187,19 @@ public class MotorTest extends LinearOpMode {
             BackLeft.setPower(BackLeftPower);
             BackRight.setPower(BackRightPower);
 
-            if (ElevatorRotateUpPower) ElevatorRotate.setPower(1);
-            else if (ElevatorRotateDownPower) ElevatorRotate.setPower(-1);
-            else ElevatorRotate.setPower(0);
+            if (ElevatorRotateUpPower)
+                ElevatorRotate.setPower(1);
+            else if (ElevatorRotateDownPower)
+                ElevatorRotate.setPower(-1);
+            else
+                ElevatorRotate.setPower(0);
 
-            if (ArmRotateClockwisePower) ArmRotate.setPower(1);
-            else if (ArmRotateCounterClockwisePower) ArmRotate.setPower(-1);
-            else ArmRotate.setPower(0);
+            if (ArmRotateClockwisePower)
+                ArmRotate.setPower(1);
+            else if (ArmRotateCounterClockwisePower)
+                ArmRotate.setPower(-1);
+            else
+                ArmRotate.setPower(0);
 
             if (ElevatorUp && (TARGET_TICK_VALUE > 0)) TARGET_TICK_VALUE++;
             else if (ElevatorDown && (TARGET_TICK_VALUE > -10)) TARGET_TICK_VALUE--;
