@@ -102,7 +102,7 @@ public class MotorTest extends LinearOpMode {
         FrontLeft.setDirection(DcMotor.Direction.REVERSE);
         BackLeft.setDirection(DcMotor.Direction.REVERSE);
         FrontRight.setDirection(DcMotor.Direction.FORWARD);
-        BackRight.setDirection(DcMotor.Direction.FORWARD);
+        BackRight.setDirection(DcMotor.Direction.REVERSE);
         Elevator.setDirection(DcMotor.Direction.REVERSE);
         ArmRotate.setDirection(DcMotor.Direction.FORWARD);
         ElevatorRotate.setDirection(DcMotor.Direction.FORWARD);
@@ -222,7 +222,7 @@ public class MotorTest extends LinearOpMode {
             telemetry.addData("ElevatorRotation", "%4.2f", ElevatorRotate.getPower());
             telemetry.addData("ElevatorExtension", "%4.2f", Elevator.getPower());
             telemetry.addData("ArmRotation", "%4.2f", ArmRotate.getPower());
-            telemetry.addData("Motor Speed"motorSpeed);
+            telemetry.addData("Motor Speed",motorSpeed);
             telemetry.update();
 
 

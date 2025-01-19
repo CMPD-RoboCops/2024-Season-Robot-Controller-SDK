@@ -61,6 +61,8 @@ public final class MecanumDrive {
         public RevHubOrientationOnRobot.UsbFacingDirection usbFacingDirection =
                 RevHubOrientationOnRobot.UsbFacingDirection.RIGHT;
 
+        //RoboCops Note - IMU Orientation Appears Correct
+
         // drive model parameters
         public double inPerTick = 1;
         public double lateralInPerTick = inPerTick;
@@ -220,6 +222,12 @@ public final class MecanumDrive {
         leftBack = hardwareMap.get(DcMotorEx.class, "BackLeft");
         rightBack = hardwareMap.get(DcMotorEx.class, "FrontRight");
         rightFront = hardwareMap.get(DcMotorEx.class, "BackRight");
+
+        //RoboCops added code
+        leftFront.setDirection(DcMotor.Direction.REVERSE);
+        leftBack.setDirection(DcMotor.Direction.REVERSE);
+        rightBack.setDirection(DcMotor.Direction.FORWARD);
+        rightFront.setDirection(DcMotor.Direction.REVERSE);
 
         leftFront.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         leftBack.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
