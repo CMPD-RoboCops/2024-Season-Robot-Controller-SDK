@@ -80,7 +80,6 @@ public class MotorTest extends LinearOpMode {
     @Override
     public void runOpMode() {
 
-
         FrontLeft = hardwareMap.get(DcMotor.class, "FrontLeft");
         BackLeft = hardwareMap.get(DcMotor.class, "BackLeft");
         FrontRight = hardwareMap.get(DcMotor.class, "FrontRight");
