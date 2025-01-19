@@ -1,36 +1,40 @@
 package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
-import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
-@TeleOp(name="claw works", group="Linear OpMode")
-
+@TeleOp(name="Claw Works", group="Linear OpMode")
 public class ServoClaeTesting extends LinearOpMode {
-    private Servo myServo;
+    private CRServo myServo;
 
     @Override
     public void runOpMode() {
         // Initialize the servo
-        myServo = hardwareMap.get(Servo.class, "claw");
+        myServo = hardwareMap.get(CRServo.class, "claw");
 
         waitForStart();
 
         while (opModeIsActive()) {
-            // Check if the A button is pressed
-            if (gamepad1.a) {
-                // Rotate the servo clockwise (move to position 1.0)
-                myServo.setPosition(1.0);
-            }
-            // Check if the B button is pressed
-            else if (gamepad1.b) {
-                // Rotate the servo anticlockwise (move to position 0.0)
-                myServo.setPosition(0.0);
-            }
+            // Variable to store servo power
+            double power = 0.0;
 
-            // Sleep to prevent excessive looping
-            sleep(20);
+            if (gamepad1.a) {
+                power = 1;  // Move forward
+            } else if (gamepad1.b) {
+                power = -1; // Move backward
+
+
+                // Set the power to the servo
+                myServo.setPower(power);
+
+                // Telemetry for debugging purposes
+                telemetry.addData("Button A", gamepad1.a);
+                telemetry.addData("Button B", gamepad1.b);
+                telemetry.addData("Servo Power", power);
+                telemetry.update();
+            }
         }
     }
-
 }
+
