@@ -75,6 +75,7 @@ public class MotorTest extends LinearOpMode {
     private DcMotor Elevator = null;
     private DcMotor ArmRotate = null;
     private DcMotor ElevatorRotate = null;
+    private DcMotor Hook = null;
     private CRServo myServo;
 
     @Override
@@ -130,7 +131,6 @@ public class MotorTest extends LinearOpMode {
             double lateral = gamepad1.left_stick_x;
             double yaw = gamepad1.right_stick_x;
 
-
             // Combine the joystick requests for each axis-motion to determine each wheel's power.
             // Set up a variable for each drive wheel to save the power level for telemetry.
             double FrontLeftPower = axial + lateral + yaw * motorSpeed;
@@ -159,6 +159,13 @@ public class MotorTest extends LinearOpMode {
             else
                 Elevator.setPower(0);
 
+            if (gamepad1.left_bumper != 0)
+                Hook.setPower(0.5);
+            else if (gamepad1.right_bumper != 0)
+                Hook.setPower(-0.5);
+            else
+                Hook.setPower(0);
+
             if (gamepad1.y) { // Increase motor speed
                 if (motorSpeed + speedIncrement <= maxSpeed) {
                     motorSpeed += speedIncrement;
@@ -182,12 +189,6 @@ public class MotorTest extends LinearOpMode {
 
             // Set the power to the servo
             myServo.setPower(power);
-            /*
-            boolean ArmRotateClockwisePower = gamepad1.dpad_right;
-            boolean ArmRotateCounterClockwisePower = gamepad1.dpad_left;
-            boolean ElevatorRotateClockwisePower = gamepad1.dpad_up;
-            boolean ElevatorRotateCounterClockwisePower = gamepad1.dpad_down;
-            */
 
             // Normalize the values so no wheel power exceeds 100%
             // This ensures that the robot maintains the desired motion.
@@ -209,13 +210,7 @@ public class MotorTest extends LinearOpMode {
             BackLeft.setPower(BackLeftPower);
             BackRight.setPower(BackRightPower);
 
-            /*
-            Elevator.setPower(gamepad1.right_trigger ? 1.0 : 0.0);
-            ArmRotate.setPower(gamepad1.b ? 1.0 : 0.0);
-            ElevatorRotate.setPower(gamepad1.y ? 1.0 : 0.0);
-             */
-
-                        // Show the elapsed game time and wheel power.
+            // Show the elapsed game time and wheel power.
             telemetry.addData("Status", "Run Time: " + runtime.toString());
             telemetry.addData("FrontLeft/Right", "%4.2f, %4.2f", FrontLeftPower, FrontRightPower);
             telemetry.addData("Back  left/Right", "%4.2f, %4.2f", BackLeftPower, BackRightPower);
