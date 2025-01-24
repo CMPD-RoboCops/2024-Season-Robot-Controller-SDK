@@ -76,7 +76,7 @@ public class MotorTest extends LinearOpMode {
     private DcMotor ArmRotate = null;
     private DcMotor ElevatorRotate = null;
     private DcMotor Hook = null;
-    private CRServo myServo;
+    private CRServo Claw;
 
     @Override
     public void runOpMode() {
@@ -88,7 +88,11 @@ public class MotorTest extends LinearOpMode {
         Elevator = hardwareMap.get(DcMotor.class, "Elevator");
         ArmRotate = hardwareMap.get(DcMotor.class, "ArmRotate");
         ElevatorRotate = hardwareMap.get(DcMotor.class, "ElevatorRotate");
-        myServo = hardwareMap.get(CRServo.class, "claw");
+        Hook = hardwareMap.get(DcMotor.class, "Hook");
+        Claw = hardwareMap.get(CRServo.class, "Claw");
+
+        // Optionally, set the initial power of the CRServo to 0
+        Claw.setPower(0);
 
         // ########################################################################################
         // !!!            IMPORTANT Drive Information. Test your motor directions.            !!!!!
@@ -107,13 +111,13 @@ public class MotorTest extends LinearOpMode {
         Elevator.setDirection(DcMotor.Direction.REVERSE);
         ArmRotate.setDirection(DcMotor.Direction.FORWARD);
         ElevatorRotate.setDirection(DcMotor.Direction.FORWARD);
+        Hook.setDirection(DcMotor.Direction.FORWARD);
 
         //Motor Throttle
         double motorSpeed = 0.5; // Current motor speed
         double minSpeed = -1.0; // Minimum motor speed
         double maxSpeed = 1.0; // Maximum motor speed
         double speedIncrement = 0.1; // Increment for speed adjustment
-        double power = 0.0;
 
         // Wait for the game to start (driver presses START)
         telemetry.addData("Status", "Initialized");
@@ -159,9 +163,9 @@ public class MotorTest extends LinearOpMode {
             else
                 Elevator.setPower(0);
 
-            if (gamepad1.left_bumper != 0)
+            if (gamepad1.left_bumper)
                 Hook.setPower(0.5);
-            else if (gamepad1.right_bumper != 0)
+            else if (gamepad1.right_bumper)
                 Hook.setPower(-0.5);
             else
                 Hook.setPower(0);
@@ -181,14 +185,14 @@ public class MotorTest extends LinearOpMode {
                 }
             }
 
+            // Check if the B button is pressed
             if (gamepad1.b) {
-                power = -1;
+                // Set the CRServo to move (e.g., forward with 0.5 power)
+                Claw.setPower(0.5);
             } else {
-                power = 1;
+                // Stop the CRServo if the B button is not pressed
+                Claw.setPower(0);
             }
-
-            // Set the power to the servo
-            myServo.setPower(power);
 
             // Normalize the values so no wheel power exceeds 100%
             // This ensures that the robot maintains the desired motion.
