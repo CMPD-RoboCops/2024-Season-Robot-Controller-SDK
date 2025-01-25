@@ -64,7 +64,7 @@ public final class MecanumDrive {
         //RoboCops Note - IMU Orientation Appears Correct
 
         // drive model parameters
-        public double inPerTick = 1;
+        public double inPerTick = 0.0060347;  //RoboCops Update, changed value from 1"
         public double lateralInPerTick = inPerTick;
         public double trackWidthTicks = 0;
 
@@ -220,14 +220,14 @@ public final class MecanumDrive {
         //   see https://ftc-docs.firstinspires.org/en/latest/hardware_and_software_configuration/configuring/index.html
         leftFront = hardwareMap.get(DcMotorEx.class, "FrontLeft");
         leftBack = hardwareMap.get(DcMotorEx.class, "BackLeft");
-        rightBack = hardwareMap.get(DcMotorEx.class, "FrontRight");
-        rightFront = hardwareMap.get(DcMotorEx.class, "BackRight");
+        rightBack = hardwareMap.get(DcMotorEx.class, "BackRight");
+        rightFront = hardwareMap.get(DcMotorEx.class, "FrontRight");
 
         //RoboCops added code
         leftFront.setDirection(DcMotor.Direction.REVERSE);
         leftBack.setDirection(DcMotor.Direction.REVERSE);
         rightBack.setDirection(DcMotor.Direction.FORWARD);
-        rightFront.setDirection(DcMotor.Direction.REVERSE);
+        rightFront.setDirection(DcMotor.Direction.FORWARD);
 
         leftFront.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         leftBack.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
