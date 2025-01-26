@@ -27,12 +27,10 @@ package org.firstinspires.ftc.teamcode;/* Copyright (c) 2021 FIRST. All rights r
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 /*
@@ -63,9 +61,8 @@ import com.qualcomm.robotcore.util.ElapsedTime;
  * Remove or comment out the @Disabled line to add this OpMode to the Driver Station OpMode list
  */
 
-@TeleOp(name="TeleOpGTB", group="Linear OpMode")
-//@Disabled
-public class MotorTest extends LinearOpMode {
+@TeleOp(name="TeleOpGTBElevatorEncoders", group="Linear OpMode")
+public class MotorTestElevatorEncoders extends LinearOpMode {
 
     // Declare OpMode members for each of the 4 motors.
     private ElapsedTime runtime = new ElapsedTime();
@@ -109,16 +106,27 @@ public class MotorTest extends LinearOpMode {
         BackLeft.setDirection(DcMotor.Direction.REVERSE);
         FrontRight.setDirection(DcMotor.Direction.FORWARD);
         BackRight.setDirection(DcMotor.Direction.FORWARD);
-        Elevator.setDirection(DcMotor.Direction.REVERSE);
+        Elevator.setDirection(DcMotor.Direction.FORWARD);
         ArmRotate.setDirection(DcMotor.Direction.FORWARD);
         ElevatorRotate.setDirection(DcMotor.Direction.FORWARD);
         Hook.setDirection(DcMotor.Direction.FORWARD);
+
+        //Set the elevator up to run to position using encoders
+        Elevator.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        Elevator.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+
+        ElevatorRotate.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        ElevatorRotate.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+
 
         //Motor Throttle
         double motorSpeed = 0.5; // Current motor speed
         double minSpeed = -1.0; // Minimum motor speed
         double maxSpeed = 1.0; // Maximum motor speed
         double speedIncrement = 0.1; // Increment for speed adjustment
+
+        int ElevatorTarget = 0;
+        int ElevatorRotateTarget = 0;
 
         // Wait for the game to start (driver presses START)
         telemetry.addData("Status", "Initialized");
@@ -143,12 +151,12 @@ public class MotorTest extends LinearOpMode {
             double BackLeftPower = axial - lateral + yaw * motorSpeed;
             double BackRightPower = axial + lateral - yaw * motorSpeed;
 
-            if (gamepad1.dpad_up)
-                ElevatorRotate.setPower(0.5);
-            else if (gamepad1.dpad_down)
-                ElevatorRotate.setPower(-0.5);
-            else
-                ElevatorRotate.setPower(0);
+            if ( gamepad1.dpad_up && ElevatorRotateTarget < 500 ) ElevatorRotateTarget += 5;
+            else if ( gamepad1.dpad_down && ElevatorRotateTarget > -500 ) ElevatorRotateTarget -= 5;
+            ElevatorRotate.setTargetPosition(ElevatorRotateTarget);
+            ElevatorRotate.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+            ElevatorRotate.setPower(1);
+            telemetry.addData("ElevatorRotateTarget", ElevatorRotateTarget);
 
             if (gamepad1.dpad_right)
                 ArmRotate.setPower(0.5);
@@ -157,12 +165,12 @@ public class MotorTest extends LinearOpMode {
             else
                 ArmRotate.setPower(0);
 
-            if (gamepad1.right_trigger != 0)
-                Elevator.setPower(0.5);
-            else if (gamepad1.left_trigger != 0)
-                Elevator.setPower(-0.5);
-            else
-                Elevator.setPower(0);
+            if ( gamepad1.right_trigger != 0 && ElevatorTarget < 2000 ) ElevatorTarget += 5;
+            else if ( gamepad1.left_trigger != 0 && ElevatorTarget > 1 ) ElevatorTarget -= 5;
+            Elevator.setTargetPosition(ElevatorTarget);
+            Elevator.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+            Elevator.setPower(1);
+            telemetry.addData("ElevatorTarget", ElevatorTarget);
 
             if (gamepad1.y) { // Increase motor speed
                 if (motorSpeed + speedIncrement <= maxSpeed) {
