@@ -13,4 +13,5 @@ public class RobotConstants {
     public static int HIGH_H = 255;
     public static int HIGH_S = 255;
     public static int HIGH_V = 255;
+    public static double servoPower = 0;
 }

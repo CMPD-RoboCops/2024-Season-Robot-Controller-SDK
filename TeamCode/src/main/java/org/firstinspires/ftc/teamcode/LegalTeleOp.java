@@ -100,7 +100,8 @@ public class LegalTeleOp extends LinearOpMode {
             }
 
             // Elevator control with limits
-            if (gamepad1.right_trigger > 0) {
+            if (gamepad1.left_trigger > 0)
+            {
                 if (limitEnabled) {
                     if (elevatorTimer.seconds() < elevatorMaxExtensionTime) {
                         Elevator.setPower(0.5); // Limit extension
@@ -110,10 +111,10 @@ public class LegalTeleOp extends LinearOpMode {
                 } else {
                     Elevator.setPower(0.5); // No limit
                 }
-                elevatorRetracted = false; // Elevator is extended
-            } else if (gamepad1.left_trigger > 0) {
+                elevatorRetracted = true; // Elevator is extended
+            } else if (gamepad1.right_trigger > 0) {
                 Elevator.setPower(-0.5); // Retract elevator
-                elevatorRetracted = true; // Mark as retracted
+                elevatorRetracted = false; // Mark as retracted
                 elevatorTimer.reset(); // Reset timer for future extensions
             } else {
                 Elevator.setPower(0);
@@ -139,21 +140,26 @@ public class LegalTeleOp extends LinearOpMode {
             }
             ArmRotate.setPower(armRotatePower);
 
-            /*
             // Hook control
-            if (gamepad1.a)
-                Hook.setPower(0.5);
-            else if (gamepad1.b)
-                Hook.setPower(-0.5);
-            else
+            if (gamepad1.right_bumper && elevatorRetracted) {
+                Hook.setPower(1);
+            } else if (gamepad1.left_bumper && elevatorRetracted) {
+                Hook.setPower(-1);
+            }else
                 Hook.setPower(0);
-            */
 
+/*
             // Claw control
             if (gamepad1.b) {
-                Claw.setPower(0.5); // Open claw
+                Claw.setPower(-0.5); // Open claw
             } else {
                 Claw.setPower(0); // Stop claw
+            }
+*/
+            if (gamepad1.a) {
+                Claw.setPower(0);
+            } else {
+                Claw.setPower(1);
             }
 
             // Telemetry for debugging
@@ -162,6 +168,7 @@ public class LegalTeleOp extends LinearOpMode {
             telemetry.addData("Elevator Retracted", elevatorRetracted);
             telemetry.addData("Arm Position", armCurrentPosition);
             telemetry.addData("Arm Min/Max", "%d / %d", minPosition, maxPosition);
+            telemetry.addData("Hook",Hook);
             telemetry.addData("FrontLeft Power", FrontLeftPower);
             telemetry.addData("FrontRight Power", FrontRightPower);
             telemetry.addData("BackLeft Power", BackLeftPower);
