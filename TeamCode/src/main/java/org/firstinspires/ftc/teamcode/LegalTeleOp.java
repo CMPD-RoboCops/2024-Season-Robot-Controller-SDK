@@ -99,14 +99,14 @@ public class LegalTeleOp extends LinearOpMode {
                 limitEnabled = false; // Disable limit when elevatorRotate exceeds 60 degrees
             }
 
-            // Elevator control with limits
+            // Elevator Extension Control
             if (gamepad1.left_trigger > 0)
             {
                 if (limitEnabled) {
                     if (elevatorTimer.seconds() < elevatorMaxExtensionTime) {
-                        Elevator.setPower(0.5); // Limit extension
+                        Elevator.setPower(0.5);
                     } else {
-                        Elevator.setPower(0); // Stop motor if time limit exceeded
+                        Elevator.setPower(0);
                     }
                 } else {
                     Elevator.setPower(0.5); // No limit
